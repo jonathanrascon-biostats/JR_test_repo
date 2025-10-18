@@ -1,0 +1,110 @@
+---
+title: "Assignment 1"
+author: "Jonathan Rascon"
+date: "2025-09-12"
+output: pdf_document
+---
+
+```{r echo=TRUE, tidy=TRUE, message=FALSE, warning=FALSE}
+#ASSIGMENT 1
+
+#Set working directory. 
+#This will point to where r looks for files I upload
+
+setwd("~/R projects/BHDS2010/Assignment 1")
+
+#Load all libraries needed here. Each library contains a set of built-in functions, or tools that can be used to solve various problems. If necessary, install packages as well.
+#install.packages("formatR")
+library(formatR)
+library(pastecs)
+
+#I used the formatR library to wrap the comments because I could not get the method we discussed in class to work. A quick google search led me to this library which had a code I could add at the top of the Markdown file: {r echo=TRUE, tidy=TRUE, message=FALSE, warning=FALSE}.
+
+#Import .dat file. The operation read.delim reads the .dat file into r. the "<-" operator assigns the file to an object (in this case, a data frame) in the environment.
+
+essay.data <- read.delim("EssayMarks.dat", header = TRUE)
+ 
+#Descriptors of columns & rows. "nrow" tells us the number of rows in the data frame, "names" gives us the names of each column, and perhaps a clue as to what kind of data (or variable) is in each column.
+ 
+nrow(essay.data) ; names(essay.data)
+
+#Summary statistics of the essay grades by percentage. The "stat.desc" function outputs: (1)nbr.val- the number of values; if all values are "valid", this will equal the number of rows, (2)nbr.null- counts null values(the absence of a value), (3)nbr.na- the # of missing values, (4)range- the max value minus the min value, (5)sum- the sum of all non-missing values, (6)mean- the arithmetic mean, (7)S.E.mean- the standard error of the mean; divide the standard deviation by the square root n, the number of samples (would n include or exclude any missing or null values? There are no missing or null values here, but I am curious), (8)CI.mean- confidence interval. This argument can be toggled. I do not yet understand confidence intervals. (9)var- The variance, the sum of the squares of the values minus the mean, divided by n-1, where n is the number of samples, (10) std.dev- The standard deviation is the square root of the variance, (11)coef.var- the coefficient of variation. This is the standard deviation divided by the mean; it tells us what percentage of the mean the standard deviation is.
+#the "round" function takes that data and rounds it to two decimals. 
+
+stat.desc(essay.data$essay)
+round(stat.desc(essay.data$essay), 2)
+
+#The Mean and Median are very close together, given the range of our data. The coefficient of variation is approximately 11%, and all data points fall within 3 standard deviations. Therefore, I would infer that this data has a somewhat normal distribution.
+
+#Add histogram: the hist function displays the first argument and displays it on the x-axis, the y-axis is the frequency, the "main' argument gives the title of the graph, and the xlab and ylab arguments give the labels for their respective axis.
+
+hist(essay.data$essay, main = "Essay Scores",
+     xlab = "Percentages",
+     ylab = "Frequency"
+)
+
+#This histogram gives visual validation for the inference stated above.
+
+#Summary statistics of the time spent writing essays. The code is providing the same operations as above.
+
+stat.desc(essay.data$hours)
+round(stat.desc(essay.data$hours), 2)
+
+#Again, the mean and median are relatively close together, and although the coefficient of variation is higher than the essay scores, the standard deviation is still just a fraction of the mean. However, we should keep in mind that the CV is three times higher with the hours as compared to the essay scores. I still think the data is normally distributed.
+
+#Add histogram: the hist function displays the first argument and displays it on the x-axis, the y-axis is the frequency, the "main' argument gives the title of the graph, and the xlab and ylab arguments give the labels for their respective axis.
+
+hist(essay.data$hours, main = "Time Allocation",
+     xlab = "Hours spent",
+     ylab = "Frequency"
+     )
+#This histogram gives visual validation for the inference stated above.
+
+#Density distribution of continuous variables by sample number. The plot function plots a graph of two variables. The first argument is the variable on the x-axis, the second the the variable on the y-axis. The main, xlab, and yalb arguments are the same as above. The type argument is how the variables are to be displayed, e.g. "p" is for points. The col argument represents the color used, and the pch argument represents the width of those points.
+
+plot(essay.data$hours, essay.data$essay,
+     main = "hours spent v. percentage grade",
+     xlab = "Hours",
+     ylab = "Percentage",
+     type = "p",
+     col = "blue",
+     pch = 16
+     )
+
+#I added this graph because I wanted to get a sense of how "linear" the relationship between the two variables was; it does not "look" very linear, and I suspect that the coefficient of correlation will show a weak positive relation between the two variables.
+
+#Check to see if "grade" is a factor. The is.factor function runs a logical check to see if the data within the parentheses is a factor.
+
+is.factor(essay.data$grade)
+
+#I am still a little unsure about what a "factor is in r, but my guess is that if a vector is a factor, then r knows to organize other variables by said vector.
+
+#Convert "grade" to factor. Given that "essay.data$grade" is not a factor(i.e. is.factor outputs as "FALSE"), we use the as.factor function to make it one, and by using the column vector essay.data$grade on each side of the equation, we are essentially transforming that column vector into a factor.
+
+essay.data$grade <- as.factor(essay.data$grade)
+
+#Check "hours" and "essay" data with is.numeric. The function is.numeric is a logical test to see if the given vectors are numeric. This will return a TRUE or FALSE output.
+
+is.numeric(essay.data$essay) ; is.numeric(essay.data$hours)
+
+#Run stratified summary statistics for each continuous variable. The "by" function tells r to stratify the numeric columns by the "grade" column. The function argument afterwards tells r to run the statistical description stratified by the category "grade". I do not fully understand the syntax of the "function(X) round(stat.desc(X), 2)" argument.
+
+by(essay.data$essay, essay.data$grade, function(X) round(stat.desc(X), 2))
+
+by(essay.data$hours, essay.data$grade, function(X) round(stat.desc(X), 2))
+
+#The essay scores stratified by grade gives us an idea of the range of scores per grade, e.g. a grade of First Class ranges in scores from 69.14 to 79.88, with a range of 10.74 points. Upper Second class, from 60.22 to 68.28, has a range of 8.06. Lower Second Class, from 51.93 to 59.97, has a range of 8.04. Third Class, from 48.23 to 49.69, has a range of 1.46. The average of these ranges is 7.08. My suspicion is that the ranges shown offer an incomplete picture of the actual range of each grade category. It is also no surprise that the coefficient of variation the the essay scores stratified by grade is very low, since I suspect that the grades are organized by the essay scores.
+
+#The hours spent working stratified by grade show a higher coefficient of variation; the hours spend working deviates more from the mean than the essay scores. The CV is a reasonable tool to use to compare the essay scores to the hours spend working stratified by grade because it is a ratio represented by percentages.
+
+#Run coefficient of correlation tests. The first "cor" code runs the coefficient of correlation between the esssay scores and the hours spent working using the pearson method, and the second runs the correlation by the spearman method. The spearman method uses ranks rather than raw scores.
+
+cor(essay.data$essay, essay.data$hours)
+cor(essay.data$essay, essay.data$hours, method = "spearman")
+
+#Although I ran both tests, I decided that the pearson method is more appropriate, because we have continuous, normally distributed variables and no outliers to deal with. The coefficient of correlation (pearson method) shows a correlation of .267, which suggests a weak linear relation with a positive slope. The distribution plot from line above supports this view.
+
+
+
+```
+
